@@ -2,7 +2,7 @@ package wombatukun.tests.test6.parser.impl;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import wombatukun.tests.test6.converter.OrderConverter;
+import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.exception.ParserException;
 import wombatukun.tests.test6.model.OrderIn;
 import wombatukun.tests.test6.model.OrderOut;
@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class OrderParserCsv extends OrderParser {
+	public static final String COLUMNS_COUNT_IS_INVALID = "columns count is invalid - ";
 
 	public OrderParserCsv(String fileName) {
 		super(fileName);
@@ -33,7 +34,7 @@ public class OrderParserCsv extends OrderParser {
 				.map(this::parseRecord).collect(Collectors.toList());
 
 		if (orders.isEmpty()) {
-			throw new ParserException("File is empty");
+			throw new ParserException(FILE_IS_EMPTY);
 		} else {
 			return orders;
 		}
@@ -43,9 +44,10 @@ public class OrderParserCsv extends OrderParser {
 		OrderOut target;
 		if (record.size() == 4) { //valid columns count = 4
 			OrderIn source = new OrderIn(record.get(0), record.get(1), record.get(2), record.get(3));
-			target = OrderConverter.convertInToOut(source, filename, record.getRecordNumber(), null);
+			target = Converter.convertInToOut(source, filename, record.getRecordNumber(), null);
 		} else {
-			target = OrderConverter.convertInToOut(null, filename, record.getRecordNumber(), "columns count is invalid - " + record.size());
+			target = Converter.convertInToOut(null, filename,
+					record.getRecordNumber(), COLUMNS_COUNT_IS_INVALID + record.size());
 		}
 		return target;
 	}

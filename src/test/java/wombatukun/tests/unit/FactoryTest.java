@@ -1,6 +1,7 @@
 package wombatukun.tests.unit;
 
-import org.junit.*;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import wombatukun.tests.test6.exception.ParserException;
 import wombatukun.tests.test6.parser.OrderParser;
@@ -8,7 +9,7 @@ import wombatukun.tests.test6.parser.ParserFactory;
 import wombatukun.tests.test6.parser.impl.OrderParserCsv;
 import wombatukun.tests.test6.parser.impl.OrderParserJson;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class FactoryTest {
 
@@ -20,7 +21,7 @@ public class FactoryTest {
 	@Test
 	public void formatNotSpecifiedTest() throws Exception {
 		expectedEx.expect(ParserException.class);
-		expectedEx.expectMessage("File format not specified");
+		expectedEx.expectMessage(ParserFactory.FILE_FORMAT_NOT_SPECIFIED);
 		OrderParser parser = factory.getParserByFileName("ololo.");
 	}
 
@@ -28,14 +29,14 @@ public class FactoryTest {
 	public void formatNotSupportedTest() throws Exception {
 		String  extension = "xxx";
 		expectedEx.expect(ParserException.class);
-		expectedEx.expectMessage(extension.toUpperCase() + "-files are not supported");
+		expectedEx.expectMessage(extension.toUpperCase() + ParserFactory.FILES_ARE_NOT_SUPPORTED);
 		OrderParser parser = factory.getParserByFileName("ololo." + extension);
 	}
 
 	@Test
 	public void unableToLoadTest() throws Exception {
 		expectedEx.expect(ParserException.class);
-		expectedEx.expectMessage("Unable to load XLSX-parser by name wombatukun.tests.parser.impl.OrderParserXlsx");
+		expectedEx.expectMessage(ParserFactory.UNABLE_TO_LOAD);
 		OrderParser parser = factory.getParserByFileName("ololo.xlsx");
 	}
 

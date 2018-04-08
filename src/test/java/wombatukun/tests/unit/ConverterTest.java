@@ -1,7 +1,7 @@
 package wombatukun.tests.unit;
 
 import org.junit.Test;
-import wombatukun.tests.test6.converter.OrderConverter;
+import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.model.OrderIn;
 import wombatukun.tests.test6.model.OrderOut;
 
@@ -12,7 +12,7 @@ import static org.junit.Assert.assertNull;
 
 public class ConverterTest {
 
-	private OrderConverter converter = OrderConverter.getInstance();
+	private Converter converter = Converter.getInstance();
 
 	private String filename = "file.ext";
 	private Long line = 42L;
@@ -25,16 +25,16 @@ public class ConverterTest {
 	@Test
 	public void convertInToOutTest() {
 		OrderIn source = new OrderIn(id.toString(), amount.toString(), currency, comment);
-		OrderOut target = OrderConverter.convertInToOut(source, filename, line, null);
+		OrderOut target = Converter.convertInToOut(source, filename, line, null);
 		assertEquals(id, target.getId());
 		assertEquals(amount, target.getAmount());
 		assertEquals(currency, target.getCurrency());
 		assertEquals(comment, target.getComment());
 		assertEquals(filename, target.getFilename());
 		assertEquals(line, target.getLine());
-		assertEquals(OrderConverter.RESULT_OK, target.getResult());
+		assertEquals(Converter.RESULT_OK, target.getResult());
 
-		target = OrderConverter.convertInToOut(null, filename, null, error);
+		target = Converter.convertInToOut(null, filename, null, error);
 		assertNull(target.getId());
 		assertNull(target.getAmount());
 		assertNull(target.getCurrency());
@@ -46,33 +46,39 @@ public class ConverterTest {
 		source.setOrderId("123.4");
 		source.setAmount("qwe");
 		source.setCurrency(null);
-		target = OrderConverter.convertInToOut(source, filename, line, null);
+		target = Converter.convertInToOut(source, filename, line, null);
 		assertNull(target.getId());
 		assertNull(target.getAmount());
 		assertNull(target.getCurrency());
 		assertEquals(comment, target.getComment());
 		assertEquals(filename, target.getFilename());
 		assertEquals(line, target.getLine());
-		assertEquals("id is invalid - 123.4, amount is invalid - qwe, currency not specified", target.getResult());
+		assertEquals(Converter.ORDER_ID + Converter.IS_INVALID + "123.4, "
+				+ Converter.ORDER_AMOUNT + Converter.IS_INVALID +"qwe, "
+				+ Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED, target.getResult());
 
 		source.setOrderId(null);
 		source.setAmount(null);
 		source.setCurrency(null);
 		source.setComment(null);
-		target = OrderConverter.convertInToOut(source, filename, null, null);
+		target = Converter.convertInToOut(source, filename, null, null);
 		assertNull(target.getComment());
 		assertNull(target.getLine());
 		assertEquals(filename, target.getFilename());
-		assertEquals("id not specified, amount not specified, currency not specified, comment not specified", target.getResult());
+		assertEquals(Converter.ORDER_ID + Converter.NOT_SPECIFIED + ", "
+				+ Converter.ORDER_AMOUNT + Converter.NOT_SPECIFIED + ", "
+				+ Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED + ", "
+				+ Converter.ORDER_COMMENT + Converter.NOT_SPECIFIED, target.getResult());
 	}
 
 	@Test
 	public void buildErrorStringTest() {
-		String expected = "{\"filename\":\"file.ext\", \"line\":42, \"result\":\"some error\"}";
-		String actual = OrderConverter.buildErrorString(filename, line, error);
+		String expected = "{\"" + Converter.ORDER_FILENAME + "\":\"file.ext\", \""
+		+ Converter.ORDER_LINE + "\":42, \"" + Converter.ORDER_RESULT + "\":\"some error\"}";
+		String actual = Converter.buildErrorString(filename, line, error);
 		assertEquals(expected, actual);
-		expected = "{\"filename\":\"file.ext\", \"result\":\"some error\"}";
-		actual = OrderConverter.buildErrorString(filename, null, error);
+		expected = "{\"" + Converter.ORDER_FILENAME + "\":\"file.ext\", \"" + Converter.ORDER_RESULT + "\":\"some error\"}";
+		actual = Converter.buildErrorString(filename, null, error);
 		assertEquals(expected, actual);
 	}
 
@@ -85,16 +91,21 @@ public class ConverterTest {
 		order.setComment(comment);
 		order.setFilename(filename);
 		order.setLine(line);
-		order.setResult(OrderConverter.RESULT_OK);
-		String expected = "{\"id\":" + order.getId() + ", \"amount\":" + order.getAmount()
-				+ ", \"comment\":\"" + order.getComment() + "\", \"filename\":\"" + order.getFilename()
-				+ "\", \"line\":" + order.getLine() + ", \"result\":\"" + order.getResult() + "\"}";
+		order.setResult(Converter.RESULT_OK);
+		String expected = "{\"" + Converter.ORDER_ID + "\":" + order.getId()
+				+ ", \"" + Converter.ORDER_AMOUNT + "\":" + order.getAmount()
+				+ ", \"" + Converter.ORDER_COMMENT + "\":\"" + order.getComment()
+				+ "\", \"" + Converter.ORDER_FILENAME + "\":\"" + order.getFilename()
+				+ "\", \"" + Converter.ORDER_LINE + "\":" + order.getLine()
+				+ ", \"" + Converter.ORDER_RESULT + "\":\"" + order.getResult() + "\"}";
 		String actual = converter.convertOutToString(order);
 		assertEquals(expected, actual);
 		order.setLine(null);
-		expected = "{\"id\":" + order.getId() + ", \"amount\":" + order.getAmount()
-				+ ", \"comment\":\"" + order.getComment() + "\", \"filename\":\"" + order.getFilename()
-				+ "\", \"result\":\"" + order.getResult() + "\"}";
+		expected = "{\"" + Converter.ORDER_ID + "\":" + order.getId()
+				+ ", \"" + Converter.ORDER_AMOUNT + "\":" + order.getAmount()
+				+ ", \"" + Converter.ORDER_COMMENT + "\":\"" + order.getComment()
+				+ "\", \"" + Converter.ORDER_FILENAME + "\":\"" + order.getFilename()
+				+ "\", \"" + Converter.ORDER_RESULT + "\":\"" + order.getResult() + "\"}";
 		actual = converter.convertOutToString(order);
 		assertEquals(expected, actual);
 	}

@@ -17,20 +17,31 @@ import java.util.stream.Collectors;
 /**
  * Class for order conversion
  */
-public class OrderConverter {
+public class Converter {
+
 	public static final String RESULT_OK = "OK";
+	public static final String NOT_SPECIFIED = " not specified";
+	public static final String IS_INVALID = " is invalid - ";
+
+	public static final String ORDER_ID = "id";
+	public static final String ORDER_AMOUNT = "amount";
+	public static final String ORDER_CURRENCY = "currency";
+	public static final String ORDER_COMMENT = "comment";
+	public static final String ORDER_FILENAME = "filename";
+	public static final String ORDER_LINE = "line";
+	public static final String ORDER_RESULT = "result";
 
 	private static class SingletonHolder {
-		private static final OrderConverter INSTANCE = new OrderConverter();
+		private static final Converter INSTANCE = new Converter();
 	}
 
 	private ObjectMapper jsonMapper;
 
-	private OrderConverter() {
+	private Converter() {
 		jsonMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 	}
 
-	public static OrderConverter getInstance() {
+	public static Converter getInstance() {
 		return SingletonHolder.INSTANCE;
 	}
 
@@ -51,8 +62,8 @@ public class OrderConverter {
 			List<String> errors = new ArrayList<>();
 			target.setId(convertId(source.getOrderId(), errors));
 			target.setAmount(convertAmount(source.getAmount(), errors));
-			target.setCurrency(validateValue("currency", source.getCurrency(), errors, null));
-			target.setComment(validateValue("comment", source.getComment(), errors, null));
+			target.setCurrency(validateValue(ORDER_CURRENCY, source.getCurrency(), errors, null));
+			target.setComment(validateValue(ORDER_COMMENT, source.getComment(), errors, null));
 			if (!errors.isEmpty()) {
 				target.setResult(errors.stream().collect(Collectors.joining(", ")));
 			} else {
@@ -89,11 +100,11 @@ public class OrderConverter {
 	 */
 	public static String buildErrorString(String filename, Long line, String errorMsg) {
 		final StringBuilder sb = new StringBuilder("{");
-		sb.append("\"filename\":\"").append(filename).append("\"");
+		sb.append("\"" + ORDER_FILENAME + "\":\"").append(filename).append("\"");
 		if (line != null) {
-			sb.append(", \"line\":").append(line);
+			sb.append(", \"" + ORDER_LINE + "\":").append(line);
 		}
-		sb.append(", \"result\":\"").append(errorMsg);
+		sb.append(", \"" + ORDER_RESULT + "\":\"").append(errorMsg);
 		sb.append("\"}");
 		return sb.toString();
 	}
@@ -101,9 +112,9 @@ public class OrderConverter {
 	private static Long convertId(String idStr, List<String> errors) {
 		Long id = null;
 		String value;
-		value = validateValue("id", idStr, errors, val -> {
+		value = validateValue(ORDER_ID, idStr, errors, val -> {
 			if (!StringUtils.isNumeric(val)) {
-				errors.add("id is invalid - " + val);
+				errors.add(ORDER_ID + IS_INVALID + val);
 				return false;
 			} else {
 				return true;
@@ -118,12 +129,12 @@ public class OrderConverter {
 	private static BigDecimal convertAmount(String amountStr, List<String> errors) {
 		BigDecimal amount = null;
 		String value;
-		value = validateValue("amount", amountStr, errors, val -> {
+		value = validateValue(ORDER_AMOUNT, amountStr, errors, val -> {
 			try {
 				new BigDecimal(val);
 				return true;
 			} catch (NumberFormatException e) {
-				errors.add("amount is invalid - " + val);
+				errors.add(ORDER_AMOUNT + IS_INVALID + val);
 				return false;
 			}
 		});
@@ -141,7 +152,7 @@ public class OrderConverter {
 				result = null;
 			}
 		} else {
-			errors.add(field + " not specified");
+			errors.add(field + NOT_SPECIFIED);
 		}
 		return result;
 	}

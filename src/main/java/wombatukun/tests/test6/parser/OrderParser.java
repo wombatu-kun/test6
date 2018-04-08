@@ -10,6 +10,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public abstract class OrderParser {
+	public static final String FILE_NOT_FOUND = "File not found";
+	public static final String FILE_IS_EMPTY = "File is empty";
 
 	protected final String filename;
 
@@ -25,7 +27,7 @@ public abstract class OrderParser {
 		try (BufferedReader input = Files.newBufferedReader(Paths.get(filename))) {
 			return parse(input);
 		} catch (IOException e) {
-			throw new ParserException("File not found");
+			throw new ParserException(FILE_NOT_FOUND);
 		}
 	}
 

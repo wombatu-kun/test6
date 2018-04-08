@@ -8,7 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import wombatukun.tests.test6.converter.OrderConverter;
+import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.exception.ParserException;
 import wombatukun.tests.test6.model.OrderIn;
 import wombatukun.tests.test6.model.OrderOut;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class OrderParserJson extends OrderParser {
+	public static final String JSON_IS_INVALID = "json is invalid";
 
 	private ObjectMapper jsonMapper;
 
@@ -32,14 +33,14 @@ public class OrderParserJson extends OrderParser {
 	public List<OrderOut> parse(BufferedReader input) {
 		String data = input.lines().collect(Collectors.joining());
 		if (StringUtils.isBlank(data)) {
-			throw new ParserException("File is empty");
+			throw new ParserException(FILE_IS_EMPTY);
 		}
 
 		Object json;
 		try {
 			json = new JSONTokener(data).nextValue();
 		} catch (JSONException je) {
-			throw new ParserException("json is invalid");
+			throw new ParserException(JSON_IS_INVALID);
 		}
 		if (json instanceof JSONObject) { //json with single object-order
 			OrderIn source;
@@ -48,7 +49,7 @@ public class OrderParserJson extends OrderParser {
 			} catch (Exception e) {
 				throw new ParserException(cutDeserializationError(e.getMessage()));
 			}
-			return Collections.singletonList(OrderConverter.convertInToOut(source, filename, null, null));
+			return Collections.singletonList(Converter.convertInToOut(source, filename, null, null));
 		} else if (json instanceof JSONArray) { //json with array of orders
 			List<OrderIn> sourceArray;
 			try {
@@ -57,10 +58,10 @@ public class OrderParserJson extends OrderParser {
 				throw new ParserException(cutDeserializationError(e.getMessage()));
 			}
 			return sourceArray.parallelStream()
-					.map(s -> OrderConverter.convertInToOut(s, filename, null, null))
+					.map(s -> Converter.convertInToOut(s, filename, null, null))
 					.collect(Collectors.toList());
 		} else { //strange content
-			throw new ParserException("json is invalid");
+			throw new ParserException(JSON_IS_INVALID);
 		}
 	}
 
