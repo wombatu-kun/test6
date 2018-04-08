@@ -1,4 +1,4 @@
-package wombatukun.tests.unit;
+package wombatukun.tests.test6;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,25 +19,25 @@ public class FactoryTest {
 	public ExpectedException expectedEx = ExpectedException.none();
 
 	@Test
-	public void formatNotSpecifiedTest() throws Exception {
+	public void formatNotSpecifiedTest() {
 		expectedEx.expect(ParserException.class);
 		expectedEx.expectMessage(ParserFactory.FILE_FORMAT_NOT_SPECIFIED);
-		OrderParser parser = factory.getParserByFileName("ololo.");
+		factory.getParserByFileName("ololo.");
 	}
 
 	@Test
-	public void formatNotSupportedTest() throws Exception {
+	public void formatNotSupportedTest() {
 		String  extension = "xxx";
 		expectedEx.expect(ParserException.class);
 		expectedEx.expectMessage(extension.toUpperCase() + ParserFactory.FILES_ARE_NOT_SUPPORTED);
-		OrderParser parser = factory.getParserByFileName("ololo." + extension);
+		factory.getParserByFileName("ololo." + extension);
 	}
 
 	@Test
-	public void unableToLoadTest() throws Exception {
+	public void unableToLoadTest(){
 		expectedEx.expect(ParserException.class);
 		expectedEx.expectMessage(ParserFactory.UNABLE_TO_LOAD);
-		OrderParser parser = factory.getParserByFileName("ololo.xlsx");
+		factory.getParserByFileName("ololo.xlsx");
 	}
 
 	@Test

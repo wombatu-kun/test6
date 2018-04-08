@@ -1,4 +1,4 @@
-package wombatukun.tests.unit;
+package wombatukun.tests.test6;
 
 import org.junit.Test;
 import wombatukun.tests.test6.converter.Converter;
@@ -73,11 +73,11 @@ public class ConverterTest {
 
 	@Test
 	public void buildErrorStringTest() {
-		String expected = "{\"" + Converter.ORDER_FILENAME + "\":\"file.ext\", \""
-		+ Converter.ORDER_LINE + "\":42, \"" + Converter.ORDER_RESULT + "\":\"some error\"}";
+		String expected = "{\"" + Converter.ORDER_FILENAME + "\":\"" + filename + "\", \""
+		+ Converter.ORDER_LINE + "\":42, \"" + Converter.ORDER_RESULT + "\":\"" + error + "\"}";
 		String actual = Converter.buildErrorString(filename, line, error);
 		assertEquals(expected, actual);
-		expected = "{\"" + Converter.ORDER_FILENAME + "\":\"file.ext\", \"" + Converter.ORDER_RESULT + "\":\"some error\"}";
+		expected = "{\"" + Converter.ORDER_FILENAME + "\":\"" + filename + "\", \"" + Converter.ORDER_RESULT + "\":\"" + error + "\"}";
 		actual = Converter.buildErrorString(filename, null, error);
 		assertEquals(expected, actual);
 	}

@@ -1,4 +1,4 @@
-package wombatukun.tests.integration;
+package wombatukun.tests.test6;
 
 import org.junit.Rule;
 import org.junit.Test;
