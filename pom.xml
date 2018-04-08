@@ -17,7 +17,7 @@
     </properties>
 
     <build>
-        <finalName>orders-parser</finalName>
+        <finalName>orders_parser</finalName>
 
         <plugins>
             <plugin>
@@ -28,11 +28,13 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
@@ -56,6 +58,31 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+
+            <!-- Packaging to JAR with dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>orders_parser</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>wombatukun.tests.test6.App</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptors>
+                                <descriptor>assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             
         </plugins>
