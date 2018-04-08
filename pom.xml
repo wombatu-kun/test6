@@ -78,7 +78,8 @@
                                 </manifest>
                             </archive>
                             <descriptors>
-                                <descriptor>assembly.xml</descriptor>
+                                <descriptor>assembly-jar-with-dependencies.xml</descriptor>
+                                <descriptor>assembly-zip-with-sources.xml</descriptor>
                             </descriptors>
                         </configuration>
                     </execution>
