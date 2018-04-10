@@ -1,11 +1,12 @@
 package wombatukun.tests.test6.parser;
 
-import java.io.InputStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.Properties;
 
+@Component
 public class ParserFactory {
-
-	public static final String PROPERTIES_FILENAME = "parsers.properties";
 	public static final String UNABLE_TO_LOAD = "Unable to load ";
 	public static final String PARSER_BY_NAME = "-parser by name ";
 	public static final String FILES_ARE_NOT_SUPPORTED = "-files are not supported";
@@ -14,17 +15,10 @@ public class ParserFactory {
 	private static class SingletonHolder {
 		private static final ParserFactory INSTANCE = new ParserFactory();
 	}
-
+	@Autowired
 	private Properties parsers;
 
-	private ParserFactory() {
-		try(InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(PROPERTIES_FILENAME)) {
-			parsers = new Properties();
-			parsers.load(in);
-		} catch (Exception e) {
-			throw new RuntimeException(UNABLE_TO_LOAD + PROPERTIES_FILENAME);
-		}
-	}
+	private ParserFactory () {}
 
 	public static ParserFactory getInstance() {
 		return SingletonHolder.INSTANCE;

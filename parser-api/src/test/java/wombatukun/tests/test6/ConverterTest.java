@@ -1,6 +1,10 @@
 package wombatukun.tests.test6;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.model.OrderIn;
 import wombatukun.tests.test6.model.OrderOut;
@@ -10,9 +14,11 @@ import java.math.BigDecimal;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+@RunWith(value = SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes={ApiConfig.class})
 public class ConverterTest {
-
-	private Converter converter = Converter.getInstance();
+	@Autowired
+	private Converter converter; // = Converter.getInstance();
 
 	private String filename = "file.ext";
 	private Long line = 42L;

@@ -1,5 +1,7 @@
 package wombatukun.tests.test6;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.parser.OrderParser;
 import wombatukun.tests.test6.parser.ParserFactory;
@@ -7,14 +9,14 @@ import wombatukun.tests.test6.parser.ParserFactory;
 import java.util.stream.Stream;
 
 public class App {
-
 	private static final String INCORRECT_COMMAND = "Incorrect command: source files not specified";
 	private static ParserFactory parserFactory;
 
     public static void main(String[] args) {
     	if (args.length != 0) {
 			try {
-				parserFactory = ParserFactory.getInstance();
+				ApplicationContext ctx = new AnnotationConfigApplicationContext("wombatukun.tests.test6");
+				parserFactory = ctx.getBean(ParserFactory.class);
 				Stream.of(args).distinct().parallel().forEach(App::processFile);
 			} catch (Exception e) {
 				System.out.println(e.getMessage());

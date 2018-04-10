@@ -1,10 +1,11 @@
 package wombatukun.tests.test6.converter;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import wombatukun.tests.test6.model.OrderIn;
 import wombatukun.tests.test6.model.OrderOut;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 /**
  * Class for order conversion
  */
+@Component
 public class Converter {
 
 	public static final String RESULT_OK = "OK";
@@ -35,10 +37,10 @@ public class Converter {
 		private static final Converter INSTANCE = new Converter();
 	}
 
+	@Autowired
 	private ObjectMapper jsonMapper;
 
 	private Converter() {
-		jsonMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 	}
 
 	public static Converter getInstance() {

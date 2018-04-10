@@ -38,4 +38,6 @@ public abstract class OrderParser {
 	 */
 	protected abstract void parse(BufferedReader input, PrintStream output) throws IOException;
 
+	//protected abstract boolean extensionCorrect(String filename);
+
 }

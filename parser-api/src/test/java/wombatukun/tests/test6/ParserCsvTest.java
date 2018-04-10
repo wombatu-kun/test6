@@ -1,6 +1,10 @@
 package wombatukun.tests.test6;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.parser.OrderParser;
 import wombatukun.tests.test6.parser.ParserFactory;
@@ -13,15 +17,18 @@ import java.io.UnsupportedEncodingException;
 
 import static org.junit.Assert.assertTrue;
 
+@RunWith(value = SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes={ApiConfig.class})
 public class ParserCsvTest {
 
 	private ClassLoader classLoader = getClass().getClassLoader();
-	private ParserFactory factory = ParserFactory.getInstance();
+	@Autowired
+	private ParserFactory parserFactory; // = ParserFactory.getInstance();
 
 	@Test
 	public void executeSuccessTest() throws UnsupportedEncodingException {
 		File file = new File(classLoader.getResource("orders.csv").getFile());
-		OrderParser parser = factory.getParserByFileName(file.getAbsolutePath());
+		OrderParser parser = parserFactory.getParserByFileName(file.getAbsolutePath());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos);
 		parser.execute(ps);
