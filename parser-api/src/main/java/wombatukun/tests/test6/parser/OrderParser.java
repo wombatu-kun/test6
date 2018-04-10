@@ -1,41 +1,41 @@
 package wombatukun.tests.test6.parser;
 
-import wombatukun.tests.test6.exception.ParserException;
-import wombatukun.tests.test6.model.OrderOut;
+import wombatukun.tests.test6.converter.Converter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 
 public abstract class OrderParser {
-	public static final String FILE_NOT_FOUND = "File not found";
 	public static final String FILE_IS_EMPTY = "File is empty";
 
 	protected final String filename;
+	protected Converter orderConverter;
 
 	public OrderParser(String filename) {
 		this.filename = filename;
+		orderConverter = Converter.getInstance();
 	}
 
 	/**
 	 * Executes parsing-process
-	 * @return list of orders
 	 */
-	public List<OrderOut> execute() {
+	public void execute(PrintStream output) {
 		try (BufferedReader input = Files.newBufferedReader(Paths.get(filename))) {
-			return parse(input);
-		} catch (IOException e) {
-			throw new ParserException(FILE_NOT_FOUND);
+			parse(input, output);
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage().replace("\"", "\\\"").replace('\n', ' '));
 		}
 	}
 
 	/**
 	 * Parses input into List of Orders
 	 * @param input opened BufferedReader
-	 * @return list ot orders
+	 * @param output opened PrintStream
+	 * @throws IOException on parsing errors
 	 */
-	protected abstract List<OrderOut> parse(BufferedReader input);
+	protected abstract void parse(BufferedReader input, PrintStream output) throws IOException;
 
 }

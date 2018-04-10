@@ -3,7 +3,6 @@ package wombatukun.tests.test6;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import wombatukun.tests.test6.exception.ParserException;
 import wombatukun.tests.test6.parser.OrderParser;
 import wombatukun.tests.test6.parser.ParserFactory;
 import wombatukun.tests.test6.parser.impl.OrderParserCsv;
@@ -20,7 +19,7 @@ public class FactoryTest {
 
 	@Test
 	public void formatNotSpecifiedTest() {
-		expectedEx.expect(ParserException.class);
+		expectedEx.expect(RuntimeException.class);
 		expectedEx.expectMessage(ParserFactory.FILE_FORMAT_NOT_SPECIFIED);
 		factory.getParserByFileName("ololo.");
 	}
@@ -28,14 +27,14 @@ public class FactoryTest {
 	@Test
 	public void formatNotSupportedTest() {
 		String  extension = "xxx";
-		expectedEx.expect(ParserException.class);
+		expectedEx.expect(RuntimeException.class);
 		expectedEx.expectMessage(extension.toUpperCase() + ParserFactory.FILES_ARE_NOT_SUPPORTED);
 		factory.getParserByFileName("ololo." + extension);
 	}
 
 	@Test
 	public void unableToLoadTest(){
-		expectedEx.expect(ParserException.class);
+		expectedEx.expect(RuntimeException.class);
 		expectedEx.expectMessage(ParserFactory.UNABLE_TO_LOAD);
 		factory.getParserByFileName("ololo.xlsx");
 	}

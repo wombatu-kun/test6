@@ -1,130 +1,96 @@
 package wombatukun.tests.test6;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import wombatukun.tests.test6.converter.Converter;
-import wombatukun.tests.test6.exception.ParserException;
-import wombatukun.tests.test6.model.OrderOut;
 import wombatukun.tests.test6.parser.OrderParser;
 import wombatukun.tests.test6.parser.ParserFactory;
 import wombatukun.tests.test6.parser.impl.OrderParserCsv;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.math.BigDecimal;
-import java.util.List;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class ParserCsvTest {
 
 	private ClassLoader classLoader = getClass().getClassLoader();
 	private ParserFactory factory = ParserFactory.getInstance();
-	private Converter converter = Converter.getInstance();
-
-	@Rule
-	public ExpectedException expectedEx = ExpectedException.none();
 
 	@Test
-	public void fileNotFoundTest() {
-		expectedEx.expect(ParserException.class);
-		expectedEx.expectMessage(OrderParser.FILE_NOT_FOUND);
-		OrderParser parser = factory.getParserByFileName("ooorders.csv");
-		parser.execute();
-	}
-
-	@Test
-	public void emptyFileTest() {
-		expectedEx.expect(ParserException.class);
-		expectedEx.expectMessage(OrderParser.FILE_IS_EMPTY);
-		File file = new File(classLoader.getResource("empty.csv").getFile());
-		OrderParser parser = factory.getParserByFileName(file.getAbsolutePath());
-		parser.execute();
-	}
-
-	@Test
-	public void executeSuccessTest() {
+	public void executeSuccessTest() throws UnsupportedEncodingException {
 		File file = new File(classLoader.getResource("orders.csv").getFile());
 		OrderParser parser = factory.getParserByFileName(file.getAbsolutePath());
-		List<OrderOut> orders = parser.execute();
-		orders.stream().map(converter::convertOutToString).forEach(System.out::println);
-		assertEquals(9, orders.size());
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		parser.execute(ps);
+		String result = baos.toString("UTF-8");
+		ps.close();
+		System.out.print(result);
 
-
-		OrderOut order = orders.stream().filter(o -> o.getLine() == 1L).findFirst().get();
-		assertNull(order.getId());
-		assertNull(order.getAmount());
-		assertNull(order.getCurrency());
-		assertEquals("оплата заказа1", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_ID + Converter.NOT_SPECIFIED
+		String expected = "{\"" + Converter.ORDER_COMMENT + "\":\"оплата заказа1\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":1, \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_ID + Converter.NOT_SPECIFIED
 				+ ", " + Converter.ORDER_AMOUNT + Converter.IS_INVALID + "a100"
-				+ ", " + Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED, order.getResult());
+				+ ", " + Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 2L).findFirst().get();
-		assertEquals(Long.valueOf(2), order.getId());
-		assertEquals(new BigDecimal(200), order.getAmount());
-		assertEquals("RUB", order.getCurrency());
-		assertEquals("оплата заказа2", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.RESULT_OK, order.getResult());
+		expected = "{\"" + Converter.ORDER_ID + "\":2, \""
+				+ Converter.ORDER_AMOUNT + "\":200, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа2\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":2, \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.RESULT_OK + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 3L).findFirst().get();
-		assertEquals(Long.valueOf(3), order.getId());
-		assertEquals(new BigDecimal(300), order.getAmount());
-		assertEquals("EUR", order.getCurrency());
-		assertEquals("оплата заказа3", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.RESULT_OK, order.getResult());
+		expected = "{\"" + Converter.ORDER_ID + "\":3, \""
+				+ Converter.ORDER_AMOUNT + "\":300, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа3\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":3, \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.RESULT_OK + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 4L).findFirst().get();
-		assertNull(order.getId());
-		assertEquals(new BigDecimal(400), order.getAmount());
-		assertEquals("JPY", order.getCurrency());
-		assertEquals("оплата заказа4", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_ID + Converter.IS_INVALID + "4f", order.getResult());
+		expected = "{\"" + Converter.ORDER_AMOUNT + "\":400, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа4\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":4, \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_ID + Converter.IS_INVALID + "4f" + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 5L).findFirst().get();
-		assertEquals(Long.valueOf(5), order.getId());
-		assertNull(order.getAmount());
-		assertEquals("BRP", order.getCurrency());
-		assertEquals("оплата заказа5", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_AMOUNT + Converter.IS_INVALID + "dfg", order.getResult());
+		expected = "{\"" + Converter.ORDER_ID + "\":5, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа5\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":5, \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_AMOUNT + Converter.IS_INVALID + "dfg" + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 6L).findFirst().get();
-		assertEquals(Long.valueOf(6), order.getId());
-		assertEquals(new BigDecimal(600), order.getAmount());
-		assertEquals("USD", order.getCurrency());
-		assertNull(order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_COMMENT + Converter.NOT_SPECIFIED, order.getResult());
+		expected = "{\"" + Converter.ORDER_ID + "\":6, \""
+				+ Converter.ORDER_AMOUNT + "\":600, \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":6, \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_COMMENT + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 7L).findFirst().get();
-		assertEquals(Long.valueOf(7), order.getId());
-		assertEquals(new BigDecimal(700), order.getAmount());
-		assertNull(order.getCurrency());
-		assertEquals("оплата заказа7", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED, order.getResult());
+		expected = "{\"" + Converter.ORDER_ID + "\":7, \""
+				+ Converter.ORDER_AMOUNT + "\":700, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа7\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":7, \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 8L).findFirst().get();
-		assertNull(order.getId());
-		assertNull(order.getAmount());
-		assertNull(order.getCurrency());
-		assertNull(order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(OrderParserCsv.COLUMNS_COUNT_IS_INVALID + "3", order.getResult());
+		expected = "{\"" + Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":8, \""
+				+ Converter.ORDER_RESULT + "\":\"" + OrderParserCsv.COLUMNS_COUNT_IS_INVALID + "3" + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getLine() == 9L).findFirst().get();
-		assertNull(order.getId());
-		assertNull(order.getAmount());
-		assertNull(order.getCurrency());
-		assertNull(order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(OrderParserCsv.COLUMNS_COUNT_IS_INVALID + "5", order.getResult());
+		expected = "{\"" + Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_LINE + "\":9, \""
+				+ Converter.ORDER_RESULT + "\":\"" + OrderParserCsv.COLUMNS_COUNT_IS_INVALID + "5" + "\"}\n";
+		assertTrue(result.contains(expected));
 	}
 
 }

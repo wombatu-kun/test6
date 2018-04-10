@@ -3,15 +3,13 @@ package wombatukun.tests.test6.parser.impl;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import wombatukun.tests.test6.converter.Converter;
-import wombatukun.tests.test6.exception.ParserException;
 import wombatukun.tests.test6.model.OrderIn;
 import wombatukun.tests.test6.model.OrderOut;
 import wombatukun.tests.test6.parser.OrderParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.PrintStream;
 import java.util.stream.StreamSupport;
 
 public class OrderParserCsv extends OrderParser {
@@ -22,22 +20,11 @@ public class OrderParserCsv extends OrderParser {
 	}
 
 	@Override
-	public List<OrderOut> parse(BufferedReader input)  {
+	public void parse(BufferedReader input, PrintStream output) throws IOException {
 		Iterable<CSVRecord> records;
-		try {
-			records = CSVFormat.EXCEL.parse(input);
-		} catch (IOException e) {
-			throw new ParserException(e.getMessage());
-		}
-
-		List<OrderOut> orders = StreamSupport.stream(records.spliterator(), true)
-				.map(this::parseRecord).collect(Collectors.toList());
-
-		if (orders.isEmpty()) {
-			throw new ParserException(FILE_IS_EMPTY);
-		} else {
-			return orders;
-		}
+		records = CSVFormat.EXCEL.parse(input);
+		StreamSupport.stream(records.spliterator(), true).map(this::parseRecord)
+				.forEach(o -> output.println(orderConverter.convertOutToString(o)));
 	}
 
 	private OrderOut parseRecord (CSVRecord record) {
@@ -51,6 +38,5 @@ public class OrderParserCsv extends OrderParser {
 		}
 		return target;
 	}
-
 
 }

@@ -4,123 +4,107 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import wombatukun.tests.test6.converter.Converter;
-import wombatukun.tests.test6.exception.ParserException;
-import wombatukun.tests.test6.model.OrderOut;
 import wombatukun.tests.test6.parser.OrderParser;
 import wombatukun.tests.test6.parser.ParserFactory;
-import wombatukun.tests.test6.parser.impl.OrderParserJson;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.math.BigDecimal;
-import java.util.List;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class ParserJsonTest {
 
 	private ClassLoader classLoader = getClass().getClassLoader();
 	private ParserFactory factory = ParserFactory.getInstance();
-	private Converter converter = Converter.getInstance();
 
 	@Rule
 	public ExpectedException expectedEx = ExpectedException.none();
 
 	@Test
-	public void fileNotFoundTest() {
-		expectedEx.expect(ParserException.class);
-		expectedEx.expectMessage(OrderParser.FILE_NOT_FOUND);
-		OrderParser parser = factory.getParserByFileName("ooorders.json");
-		parser.execute();
-	}
-
-	@Test
 	public void invalidJsonTest() {
-		expectedEx.expect(ParserException.class);
-		expectedEx.expectMessage(OrderParserJson.JSON_IS_INVALID);
+		expectedEx.expect(RuntimeException.class);
 		File file = new File(classLoader.getResource("invalid.json").getFile());
 		OrderParser parser = factory.getParserByFileName(file.getAbsolutePath());
-		parser.execute();
+		parser.execute(System.out);
 	}
 
 	@Test
 	public void emptyFileTest() {
-		expectedEx.expect(ParserException.class);
+		expectedEx.expect(RuntimeException.class);
 		expectedEx.expectMessage(OrderParser.FILE_IS_EMPTY);
 		File file = new File(classLoader.getResource("empty.json").getFile());
 		OrderParser parser = factory.getParserByFileName(file.getAbsolutePath());
-		parser.execute();
+		parser.execute(System.out);
 	}
 
 	@Test
-	public void singleObjectTest() {
+	public void singleObjectTest() throws UnsupportedEncodingException {
 		File file = new File(classLoader.getResource("object.json").getFile());
 		OrderParser parser = factory.getParserByFileName(file.getAbsolutePath());
-		List<OrderOut> orders = parser.execute();
-		assertEquals(1, orders.size());
-		OrderOut order = orders.get(0);
-		assertNull(order.getLine());
-		assertEquals(Long.valueOf(1), order.getId());
-		assertEquals(new BigDecimal(100), order.getAmount());
-		assertEquals("USD", order.getCurrency());
-		assertEquals("оплата заказа", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.RESULT_OK, order.getResult());
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		parser.execute(ps);
+		String result = baos.toString("UTF-8");
+		assertEquals("{\"" + Converter.ORDER_ID + "\":1, \""
+				+ Converter.ORDER_AMOUNT + "\":100, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.RESULT_OK + "\"}\n", result);
+		ps.close();
 	}
 
 	@Test
-	public void executeSuccessTest() {
+	public void executeSuccessTest() throws UnsupportedEncodingException {
 		File file = new File(classLoader.getResource("array.json").getFile());
 		OrderParser parser = factory.getParserByFileName(file.getAbsolutePath());
-		List<OrderOut> orders = parser.execute();
-		orders.stream().map(converter::convertOutToString).forEach(System.out::println);
-		assertEquals(6, orders.size());
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		parser.execute(ps);
+		String result = baos.toString("UTF-8");
+		ps.close();
+		System.out.print(result);
 
-		OrderOut order = orders.stream().filter(o -> o.getAmount().equals(new BigDecimal(150))).findFirst().get();
-		assertNull(order.getId());
-		assertEquals("KZH", order.getCurrency());
-		assertEquals("оплата заказа11", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_ID + Converter.NOT_SPECIFIED, order.getResult());
+		String expected = "{\"" + Converter.ORDER_AMOUNT + "\":150, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа11\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_ID + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getAmount() == null).findFirst().get();
-		assertEquals(Long.valueOf(12), order.getId());
-		assertEquals("BLR", order.getCurrency());
-		assertEquals("оплата заказа12", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_AMOUNT + Converter.NOT_SPECIFIED, order.getResult());
+		expected = "{\"" + Converter.ORDER_ID + "\":12, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа12\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_AMOUNT + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getResult().equals(Converter.RESULT_OK)).findFirst().get();
-		assertEquals(Long.valueOf(13), order.getId());
-		assertEquals(new BigDecimal(350), order.getAmount());
-		assertEquals("UGG", order.getCurrency());
-		assertEquals("оплата заказа13", order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
+		expected = "{\"" + Converter.ORDER_ID + "\":13, \""
+				+ Converter.ORDER_AMOUNT + "\":350, \""
+				+ Converter.ORDER_COMMENT + "\":\"оплата заказа13\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.RESULT_OK + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> o.getCurrency().equals("GBP")).findFirst().get();
-		assertEquals(Long.valueOf(14), order.getId());
-		assertNull(order.getAmount());
-		assertNull(order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_AMOUNT + Converter.IS_INVALID + "q450"
-				+ ", " + Converter.ORDER_COMMENT + Converter.NOT_SPECIFIED, order.getResult());
+		expected = "{\"" + Converter.ORDER_ID + "\":14, \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_AMOUNT + Converter.IS_INVALID + "q450"
+				+ ", " + Converter.ORDER_COMMENT + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> "800".equals(o.getComment())).findFirst().get();
-		assertNull(order.getId());
-		assertNull(order.getCurrency());
-		assertEquals(new BigDecimal(450), order.getAmount());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_ID + Converter.IS_INVALID + "15w"
-				+ ", " + Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED, order.getResult());
+		expected = "{\"" + Converter.ORDER_AMOUNT + "\":450, \""
+				+ Converter.ORDER_COMMENT + "\":\"800\", \""
+				+ Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_ID + Converter.IS_INVALID + "15w"
+				+ ", " + Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 
-		order = orders.stream().filter(o -> (o.getAmount() == null && o.getId() == null)).findFirst().get();
-		assertNull(order.getCurrency());
-		assertNull(order.getComment());
-		assertEquals(file.getAbsolutePath(), order.getFilename());
-		assertEquals(Converter.ORDER_ID + Converter.NOT_SPECIFIED
+		expected = "{\"" + Converter.ORDER_FILENAME + "\":\"" + file.getAbsolutePath() + "\", \""
+				+ Converter.ORDER_RESULT + "\":\"" + Converter.ORDER_ID + Converter.NOT_SPECIFIED
 				+ ", " + Converter.ORDER_AMOUNT + Converter.NOT_SPECIFIED
 				+ ", " + Converter.ORDER_CURRENCY + Converter.NOT_SPECIFIED
-				+ ", " + Converter.ORDER_COMMENT + Converter.NOT_SPECIFIED, order.getResult());
+				+ ", " + Converter.ORDER_COMMENT + Converter.NOT_SPECIFIED + "\"}\n";
+		assertTrue(result.contains(expected));
 	}
 
 }
