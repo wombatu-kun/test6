@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 
 public abstract class OrderParser {
 	public static final String FILE_NOT_FOUND = "File not found";
@@ -16,6 +18,8 @@ public abstract class OrderParser {
 
 	@Autowired
 	protected Converter orderConverter;
+	@Autowired
+	protected ForkJoinPool forkJoinPool;
 
 	/**
 	 * Executes parsing-process
@@ -42,7 +46,7 @@ public abstract class OrderParser {
 	 * @param output opened PrintStream
 	 * @throws IOException on parsing errors
 	 */
-	protected abstract void parse(String filename, BufferedReader input, PrintStream output) throws IOException;
+	protected abstract void parse(String filename, BufferedReader input, PrintStream output) throws IOException, ExecutionException, InterruptedException;
 
 	/**
 	 * Checks if file is supported by the parser

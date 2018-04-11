@@ -6,6 +6,7 @@ import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.parser.OrderParser;
 
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
 public class App {
@@ -16,12 +17,20 @@ public class App {
 
     public static void main(String[] args) {
     	if (args.length != 0) {
+			ForkJoinPool forkJoinPool = null;
 			try {
 				ApplicationContext ctx = new AnnotationConfigApplicationContext("wombatukun.tests.test6");
 				parsersMap = (Map<String, OrderParser>) ctx.getBean("parsersMap");
-				Stream.of(args).distinct().parallel().forEach(App::processFile);
+				forkJoinPool = (ForkJoinPool) ctx.getBean("forkJoinPool");
+				forkJoinPool.submit( () ->
+					Stream.of(args).distinct().parallel().forEach(App::processFile)
+				).get();
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
+			} finally {
+				if (forkJoinPool != null) {
+					forkJoinPool.shutdown();
+				}
 			}
 		} else {
 			System.out.println(INCORRECT_COMMAND);

@@ -10,6 +10,7 @@ import wombatukun.tests.test6.parser.OrderParser;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.StreamSupport;
 
 public class OrderParserCsv extends OrderParser {
@@ -22,11 +23,13 @@ public class OrderParserCsv extends OrderParser {
 	}
 
 	@Override
-	public void parse(String filename, BufferedReader input, PrintStream output) throws IOException {
+	public void parse(String filename, BufferedReader input, PrintStream output) throws IOException, ExecutionException, InterruptedException {
 		Iterable<CSVRecord> records;
 		records = CSVFormat.EXCEL.parse(input);
-		StreamSupport.stream(records.spliterator(), true).map(r -> parseRecord(filename, r))
-				.forEach(o -> output.println(orderConverter.convertOutToString(o)));
+		forkJoinPool.submit( () ->
+			StreamSupport.stream(records.spliterator(), true).map(r -> parseRecord(filename, r))
+					.forEach(o -> output.println(orderConverter.convertOutToString(o)))
+		).get();
 	}
 
 	private OrderOut parseRecord (String filename, CSVRecord record) {

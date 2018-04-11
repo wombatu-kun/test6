@@ -3,6 +3,7 @@ package wombatukun.tests.test6;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -15,11 +16,15 @@ import wombatukun.tests.test6.parser.impl.OrderParserJson;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 
 @Configuration
 @ComponentScan("wombatukun.tests.test6")
 @PropertySource(value={"classpath:config.properties"})
 public class ApiConfig {
+
+	@Value("${parallelism}")
+	public Integer parallelism;
 
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertyConfigurer() {
@@ -53,6 +58,11 @@ public class ApiConfig {
 	@Bean
 	public Converter orderConverter() {
 		return Converter.getInstance();
+	}
+
+	@Bean
+	public ForkJoinPool forkJoinPool() {
+		return new ForkJoinPool(parallelism);
 	}
 
 }

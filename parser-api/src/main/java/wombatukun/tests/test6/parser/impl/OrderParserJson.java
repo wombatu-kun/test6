@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class OrderParserJson extends OrderParser {
@@ -31,7 +32,7 @@ public class OrderParserJson extends OrderParser {
 	}
 
 	@Override
-	public void parse(String filename, BufferedReader input, PrintStream output) throws IOException {
+	public void parse(String filename, BufferedReader input, PrintStream output) throws IOException, ExecutionException, InterruptedException {
 		String data = input.lines().collect(Collectors.joining());
 		if (StringUtils.isBlank(data)) {
 			throw new RuntimeException(FILE_IS_EMPTY);
@@ -45,9 +46,11 @@ public class OrderParserJson extends OrderParser {
 			output.println(orderConverter.convertOutToString(order));
 		} else if (json instanceof JSONArray) { //json with array of orders
 			List<OrderIn> sourceArray = jsonMapper.readValue(data, new TypeReference<List<OrderIn>>(){});
-			sourceArray.parallelStream()
-					.map(s -> Converter.convertInToOut(s, filename, null, null))
-					.forEach(o -> output.println(orderConverter.convertOutToString(o)));
+			forkJoinPool.submit( () ->
+				sourceArray.parallelStream()
+						.map(s -> Converter.convertInToOut(s, filename, null, null))
+						.forEach(o -> output.println(orderConverter.convertOutToString(o)))
+			).get();
 		} else { //strange content
 			throw new RuntimeException(JSON_IS_INVALID);
 		}
