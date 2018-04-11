@@ -13,21 +13,23 @@ import java.io.PrintStream;
 import java.util.stream.StreamSupport;
 
 public class OrderParserCsv extends OrderParser {
+	public static final String EXTENSION = "CSV";
 	public static final String COLUMNS_COUNT_IS_INVALID = "columns count is invalid - ";
 
-	public OrderParserCsv(String fileName) {
-		super(fileName);
+	@Override
+	protected boolean extensionCorrect(String filename) {
+		return filename.toUpperCase().endsWith("." + EXTENSION);
 	}
 
 	@Override
-	public void parse(BufferedReader input, PrintStream output) throws IOException {
+	public void parse(String filename, BufferedReader input, PrintStream output) throws IOException {
 		Iterable<CSVRecord> records;
 		records = CSVFormat.EXCEL.parse(input);
-		StreamSupport.stream(records.spliterator(), true).map(this::parseRecord)
+		StreamSupport.stream(records.spliterator(), true).map(r -> parseRecord(filename, r))
 				.forEach(o -> output.println(orderConverter.convertOutToString(o)));
 	}
 
-	private OrderOut parseRecord (CSVRecord record) {
+	private OrderOut parseRecord (String filename, CSVRecord record) {
 		OrderOut target;
 		if (record.size() == 4) { //valid columns count = 4
 			OrderIn source = new OrderIn(record.get(0), record.get(1), record.get(2), record.get(3));

@@ -9,7 +9,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.parser.OrderParser;
-import wombatukun.tests.test6.parser.ParserFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -25,17 +24,23 @@ public class ParserJsonTest {
 
 	private ClassLoader classLoader = getClass().getClassLoader();
 	@Autowired
-	private ParserFactory parserFactory; // = ParserFactory.getInstance();
+	private OrderParser jsonParser;
 
 	@Rule
 	public ExpectedException expectedEx = ExpectedException.none();
 
 	@Test
+	public void fileNotFoundTest() {
+		expectedEx.expect(RuntimeException.class);
+		expectedEx.expectMessage(OrderParser.FILE_NOT_FOUND);
+		jsonParser.execute("no_such_file.json", System.out);
+	}
+
+	@Test
 	public void invalidJsonTest() {
 		expectedEx.expect(RuntimeException.class);
 		File file = new File(classLoader.getResource("invalid.json").getFile());
-		OrderParser parser = parserFactory.getParserByFileName(file.getAbsolutePath());
-		parser.execute(System.out);
+		jsonParser.execute(file.getAbsolutePath(), System.out);
 	}
 
 	@Test
@@ -43,17 +48,23 @@ public class ParserJsonTest {
 		expectedEx.expect(RuntimeException.class);
 		expectedEx.expectMessage(OrderParser.FILE_IS_EMPTY);
 		File file = new File(classLoader.getResource("empty.json").getFile());
-		OrderParser parser = parserFactory.getParserByFileName(file.getAbsolutePath());
-		parser.execute(System.out);
+		jsonParser.execute(file.getAbsolutePath(), System.out);
+	}
+
+	@Test
+	public void unsupportedFormatTest() {
+		expectedEx.expect(RuntimeException.class);
+		expectedEx.expectMessage(OrderParser.FORMAT_IS_NOT_SUPPORTED);
+		File file = new File(classLoader.getResource("orders.csv").getFile());
+		jsonParser.execute(file.getAbsolutePath(), System.out);
 	}
 
 	@Test
 	public void singleObjectTest() throws UnsupportedEncodingException {
 		File file = new File(classLoader.getResource("object.json").getFile());
-		OrderParser parser = parserFactory.getParserByFileName(file.getAbsolutePath());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos);
-		parser.execute(ps);
+		jsonParser.execute(file.getAbsolutePath(), ps);
 		String result = baos.toString("UTF-8");
 		assertEquals("{\"" + Converter.ORDER_ID + "\":1, \""
 				+ Converter.ORDER_AMOUNT + "\":100, \""
@@ -66,10 +77,9 @@ public class ParserJsonTest {
 	@Test
 	public void executeSuccessTest() throws UnsupportedEncodingException {
 		File file = new File(classLoader.getResource("array.json").getFile());
-		OrderParser parser = parserFactory.getParserByFileName(file.getAbsolutePath());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos);
-		parser.execute(ps);
+		jsonParser.execute(file.getAbsolutePath(), ps);
 		String result = baos.toString("UTF-8");
 		ps.close();
 		System.out.print(result);

@@ -6,31 +6,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import wombatukun.tests.test6.converter.Converter;
-import wombatukun.tests.test6.parser.ParserFactory;
+import wombatukun.tests.test6.parser.OrderParser;
+import wombatukun.tests.test6.parser.impl.OrderParserCsv;
+import wombatukun.tests.test6.parser.impl.OrderParserJson;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @ComponentScan("wombatukun.tests.test6")
+@PropertySource(value={"classpath:config.properties"})
 public class ApiConfig {
-	public static final String PROPERTIES_FILENAME = "parsers.properties";
 
 	@Bean
-	public Properties parsers() throws IOException{
-		Properties parsers;
-		try(InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(PROPERTIES_FILENAME)) {
-			parsers = new Properties();
-			parsers.load(in);
-		}
-		return parsers;
+	public static PropertySourcesPlaceholderConfigurer propertyConfigurer() {
+		return new PropertySourcesPlaceholderConfigurer();
 	}
 
 	@Bean
-	public ParserFactory parserFactory() {
-		return ParserFactory.getInstance();
+	public OrderParser csvParser () {
+		return new OrderParserCsv();
+	}
+
+	@Bean
+	public OrderParser jsonParser () {
+		return new OrderParserJson();
+	}
+
+	@Bean
+	public Map<String, OrderParser> parsersMap() {
+		Map<String, OrderParser> map = new HashMap<>();
+		map.put(OrderParserCsv.EXTENSION, csvParser());
+		map.put(OrderParserJson.EXTENSION, jsonParser());
+		return map;
 	}
 
 	@Bean

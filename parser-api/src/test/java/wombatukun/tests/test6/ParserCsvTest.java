@@ -1,13 +1,14 @@
 package wombatukun.tests.test6;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import wombatukun.tests.test6.converter.Converter;
 import wombatukun.tests.test6.parser.OrderParser;
-import wombatukun.tests.test6.parser.ParserFactory;
 import wombatukun.tests.test6.parser.impl.OrderParserCsv;
 
 import java.io.ByteArrayOutputStream;
@@ -23,15 +24,33 @@ public class ParserCsvTest {
 
 	private ClassLoader classLoader = getClass().getClassLoader();
 	@Autowired
-	private ParserFactory parserFactory; // = ParserFactory.getInstance();
+	OrderParser csvParser;
+
+	@Rule
+	public ExpectedException expectedEx = ExpectedException.none();
+
+	@Test
+	public void fileNotFoundTest() {
+		expectedEx.expect(RuntimeException.class);
+		expectedEx.expectMessage(OrderParser.FILE_NOT_FOUND);
+		csvParser.execute("no_such_file.csv", System.out);
+	}
+
+	@Test
+	public void unsupportedFormatTest() {
+		expectedEx.expect(RuntimeException.class);
+		expectedEx.expectMessage(OrderParser.FORMAT_IS_NOT_SUPPORTED);
+		File file = new File(classLoader.getResource("object.json").getFile());
+		csvParser.execute(file.getAbsolutePath(), System.out);
+	}
+
 
 	@Test
 	public void executeSuccessTest() throws UnsupportedEncodingException {
 		File file = new File(classLoader.getResource("orders.csv").getFile());
-		OrderParser parser = parserFactory.getParserByFileName(file.getAbsolutePath());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos);
-		parser.execute(ps);
+		csvParser.execute(file.getAbsolutePath(), ps);
 		String result = baos.toString("UTF-8");
 		ps.close();
 		System.out.print(result);
