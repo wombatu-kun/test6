@@ -20,7 +20,7 @@
         <apache.commons.lang3>3.5</apache.commons.lang3>
         <junit.version>4.12</junit.version>
         <json.version>20180130</json.version>
-        <fasterxml.core.jackson-databind>2.9.0</fasterxml.core.jackson-databind>
+        <fasterxml.core.jackson-databind>2.9.10.8</fasterxml.core.jackson-databind>
     </properties>
 
     <dependencyManagement>
